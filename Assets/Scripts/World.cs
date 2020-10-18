@@ -582,18 +582,26 @@ public class World : MonoBehaviour
 
     void GenerateRandomMaze()
     {
-        MazeDevide(mazeMatrix, 0, Random.Range(1,MAZE_ROW - 1), MAZE_COLUMN, MAZE_ROW, false);
+        Debug.Log("----------- Maze Devide Init -------------");
+        MazeDevide(mazeMatrix, 0, Random.Range(0,MAZE_ROW-1), MAZE_COLUMN, MAZE_ROW, false);
+        //MazeDevide(mazeMatrix, 0, 6, MAZE_COLUMN, MAZE_ROW, false, true);
+        //MazeDevide(mazeMatrix, 0, 0, MAZE_COLUMN, MAZE_ROW, false, true);
     }
 
-    void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height, bool limit)
+    void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height, bool limit, bool isInit)
     {
-        if (width < 1 || height < 1)
+        if (width <= 1 || height <= 1)
             return;
         bool isHorizon;
+        /*
         if (width == height)
         {
             isHorizon = Random.Range(0,1) == 0;
         }
+        else
+        */
+        if (isInit)
+            isHorizon = true;
         else
             isHorizon = width < height;
         
@@ -612,21 +620,28 @@ public class World : MonoBehaviour
         int wEndRow = -1;
         if (!limit)
         {
-            if (pEndCol < MAZE_COLUMN - 1)
+            if ((isHorizon && pEndCol < MAZE_COLUMN - 1)
+            || !isHorizon
+            )
                 wEndCol = isHorizon ? MAZE_COLUMN - 1 : pEndCol;
-            if (pEndRow < MAZE_ROW - 1)
+            if ((!isHorizon && pEndRow < MAZE_ROW - 1)
+            || isHorizon
+            )
                 wEndRow = isHorizon ? pEndRow : MAZE_ROW - 1;
         }
         else
         {
-            if (pEndCol < width)
+            if ((isHorizon && pEndCol < width)
+            || !isHorizon
+            )
                 wEndCol = isHorizon ? width : pEndCol;
-            if (pEndRow < height)
+            if (!isHorizon && (pEndRow < height)
+            || isHorizon
+            )
                 wEndRow = isHorizon ? pEndRow : height;
         }
 
-        Debug.Log("------------------------------------");
-        Debug.Log("isHorizon ? "+isHorizon+" width ? "+width+" height ? "+height);
+        Debug.Log("isHorizon ? "+isHorizon+" width ? "+width+" height ? "+height+" limit ? "+limit);
         Debug.Log("Start  Cell["+startCol+"]["+startRow+"]");// ? ("+maze[startCol,startRow].x+", "+maze[startCol,startRow].y+", "+maze[startCol,startRow].z+")");
         Debug.Log("FirstWall Cell["+wFirstCol+"]["+wFirstRow+"]");// ? ("+maze[wFirstCol,wFirstRow].x+", "+maze[wFirstCol,wFirstRow].y+", "+maze[wFirstCol,wFirstRow].z+")");
         Debug.Log("Pass Cell["+pEndCol+"]["+pEndRow+"]");// ? ("+maze[pEndCol,pEndRow].x+", "+maze[pEndCol,pEndRow].y+", "+maze[pEndCol,pEndRow].z+")");
@@ -642,8 +657,12 @@ public class World : MonoBehaviour
 
         if (isHorizon)
         {
-            MazeDevide(maze, Random.Range(0,MAZE_COLUMN - 1), startRow, width, height - startRow, false);
-            MazeDevide(maze, Random.Range(0,MAZE_COLUMN - 1), 0, width, startRow, true);
+            //up part
+            Debug.Log("----------- Maze Devide Up Part -------------");
+            MazeDevide(maze, Random.Range(0,MAZE_COLUMN - 1), startRow, width, height - startRow, false, false);
+            //down part
+            Debug.Log("----------- Maze Devide Down Part -------------");
+            MazeDevide(maze, Random.Range(0,MAZE_COLUMN - 1), 0, width, startRow, true, false);
         }
         else
         {
