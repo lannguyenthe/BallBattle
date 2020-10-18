@@ -529,6 +529,7 @@ public class World : MonoBehaviour
     const int MAZE_ROW = 7;
     //int MAZE_ROW;
     Vector3[,] mazeMatrix;
+    bool lastHorizon;
     bool[] recursiveDebug;
     void InitMazeGame()
     {
@@ -539,6 +540,8 @@ public class World : MonoBehaviour
 
         wallContainer = new GameObject();
         recursiveDebug = new bool[10];
+        lastHorizon = false;
+
         for (int i = 0; i < 10; i++)
             recursiveDebug[i] = false;
 
@@ -590,12 +593,12 @@ public class World : MonoBehaviour
     void GenerateRandomMaze()
     {
         Debug.Log("----------- Maze Devide Init -------------");
-        MazeDevide(mazeMatrix, 0, Random.Range(0,MAZE_ROW-1), MAZE_COLUMN, MAZE_ROW, false, true);
-        //MazeDevide(mazeMatrix, 0, 6, MAZE_COLUMN, MAZE_ROW, false, true);
-        //MazeDevide(mazeMatrix, 0, 0, MAZE_COLUMN, MAZE_ROW, false, true);
+        MazeDevide(mazeMatrix, 0, Random.Range(1,MAZE_ROW-1), MAZE_COLUMN, MAZE_ROW, false);
+        //MazeDevide(mazeMatrix, 0, 6, MAZE_COLUMN, MAZE_ROW, false);
+        //MazeDevide(mazeMatrix, 0, 0, MAZE_COLUMN, MAZE_ROW, false);
     }
 
-    void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height, bool limit, bool isInit)
+    void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height, bool limit)
     {
         Debug.Log("startCol ? "+startCol);
         Debug.Log("startRow ? "+startRow);
@@ -609,17 +612,17 @@ public class World : MonoBehaviour
             return;
         }
         bool isHorizon;
-        /*
         if (width == height)
         {
-            isHorizon = Random.Range(0,1) == 0;
+            Debug.Log("lastHorizon ? "+lastHorizon);
+            //isHorizon = Random.Range(0,1) == 0;
+            isHorizon = !lastHorizon;
         }
         else
-        */
-        if (isInit)
-            isHorizon = true;
-        else
+        {
             isHorizon = width < height;
+            lastHorizon = isHorizon;
+        }
         
         //first wall
         int wFirstCol = startCol + (isHorizon ? Random.Range(0,width - 2) : 0);
@@ -665,14 +668,14 @@ public class World : MonoBehaviour
        
         bool isAWallCreated = false;
         //draw first wall
-        if (wFirstCol >= 0 && wFirstRow >= 0)
+        if (isValidCell(startCol,startRow) && isValidCell(wFirstCol,wFirstRow))
         {
             CreateWall(maze[startCol,startRow],maze[wFirstCol,wFirstRow],isHorizon);
             isAWallCreated = true;
         }
 
         //draw last wall
-        if (wEndCol >= 0 && wEndRow >= 0)
+        if (isValidCell(pEndCol,pEndRow) && isValidCell(wEndCol,wEndRow))
         {
             CreateWall(maze[pEndCol,pEndRow],maze[wEndCol,wEndRow],isHorizon);
             isAWallCreated = true;
@@ -681,40 +684,41 @@ public class World : MonoBehaviour
         if (!isAWallCreated)
             return;
 
-        //if (recursiveDebug[1])
+        //if (recursiveDebug[2])
             //return;
 
         if (isHorizon)
         {
             //up part
             Debug.Log("--- Maze Devide Horizon Up Part -------------");
-            int randColUp = Random.Range(startCol, (int)Mathf.Max(width,MAZE_COLUMN - 1));
-            Debug.Log("randCol Up from "+startCol+" to "+(int)Mathf.Max(width,MAZE_COLUMN - 1)+" ? "+randColUp);
-
-            MazeDevide(maze, randColUp, startRow + 1, width, height - startRow, false, false);
+            int randColUp = Random.Range(startCol, (int)Mathf.Min(width,MAZE_COLUMN - 1));
+            Debug.Log("randCol Up from "+startCol+" to "+(int)Mathf.Min(width,MAZE_COLUMN - 1)+" ? "+randColUp);
+            if (recursiveDebug[1])
+                recursiveDebug[2] = true;
+            MazeDevide(maze, randColUp, startRow + 1, width, height - startRow, false);
 
             //down part
             Debug.Log("--- Maze Devide Horizon Down Part -------------");
-            int randColDown = Random.Range(startCol, (int)Mathf.Max(width,MAZE_COLUMN - 1));
-            Debug.Log("randCol Down from "+startCol+" to "+(int)Mathf.Max(width,MAZE_COLUMN - 1)+" ? "+randColDown);
-
-            MazeDevide(maze, randColDown, 0, width, startRow, true, false);
+            int randColDown = Random.Range(startCol, (int)Mathf.Min(width,MAZE_COLUMN - 1));
+            Debug.Log("randCol Down from "+startCol+" to "+(int)Mathf.Min(width,MAZE_COLUMN - 1)+" ? "+randColDown);
+           
+            MazeDevide(maze, randColDown, 0, width, startRow, true);
         }
         else
         {
             Debug.Log("--- Maze Devide Left Part -------------");
+            recursiveDebug[1] = true;
             recursiveDebug[0] = true;
-            int randRowLeft = Random.Range(startRow, (int)Mathf.Max(height,MAZE_ROW - 1));
-            Debug.Log("randRowLeft from "+startRow+" to "+(int)Mathf.Max(height,MAZE_ROW - 1)+" ? "+randRowLeft);
+            int randRowLeft = Random.Range(startRow, (int)Mathf.Min(height,MAZE_ROW - 1));
+            Debug.Log("randRowLeft from "+startRow+" to "+(int)Mathf.Min(height,MAZE_ROW - 1)+" ? "+randRowLeft);
             
-            MazeDevide(maze, 0, randRowLeft, startCol, height, true, false);
+            MazeDevide(maze, 0, randRowLeft, startCol, height, true);
 
             Debug.Log("--- Maze Devide Right Part -------------");
-            recursiveDebug[1] = true;
-            int randRowRight = Random.Range(startRow, (int)Mathf.Max(height,MAZE_ROW - 1));
-            Debug.Log("randRowRight from "+startRow+" to "+(int)Mathf.Max(height,MAZE_ROW - 1)+" ? "+randRowRight);
+            int randRowRight = Random.Range(startRow, (int)Mathf.Min(height,MAZE_ROW - 1));
+            Debug.Log("randRowRight from "+startRow+" to "+(int)Mathf.Min(height,MAZE_ROW - 1)+" ? "+randRowRight);
 
-            MazeDevide(maze, startCol + 1, randRowRight, width - startCol, height, false, false);
+            MazeDevide(maze, startCol + 1, randRowRight, width - startCol, height, false);
         }
     }
 
@@ -746,5 +750,9 @@ public class World : MonoBehaviour
         }
         cube.GetComponent<MeshRenderer>().material.color = Color.red;
         cube.transform.parent = wallContainer.transform;
+    }
+    bool isValidCell(int col, int row)
+    {
+        return col >= 0 && col < MAZE_COLUMN && row >= 0 && row < MAZE_ROW;
     }
 }
