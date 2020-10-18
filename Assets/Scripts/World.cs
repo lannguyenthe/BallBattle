@@ -529,8 +529,9 @@ public class World : MonoBehaviour
     const int MAZE_ROW = 7;
     //int MAZE_ROW;
     Vector3[,] mazeMatrix;
-    bool lastHorizon;
-    bool[] recursiveDebug;
+    GameObject[] rowContainer;
+    GameObject[] colContainer;
+    bool[,] cellVisited;
     void InitMazeGame()
     {
         Debug.Log("InitMazeGame");
@@ -539,11 +540,18 @@ public class World : MonoBehaviour
         InitNewGameValue(Globals.ROLE_ATTACKER);
 
         wallContainer = new GameObject();
-        recursiveDebug = new bool[10];
-        lastHorizon = false;
+        rowContainer = new GameObject[MAZE_ROW];
+        for (int i = 0; i < MAZE_ROW; i++)
+            rowContainer[i] = new GameObject();
 
-        for (int i = 0; i < 10; i++)
-            recursiveDebug[i] = false;
+        colContainer = new GameObject[MAZE_COLUMN];
+        for (int i = 0; i < MAZE_COLUMN; i++)
+            colContainer[i] = new GameObject();
+
+        cellVisited = new bool[MAZE_COLUMN,MAZE_ROW];
+        for (int i = 0; i < MAZE_COLUMN; i++)
+            for (int j = 0; j < MAZE_ROW; j++)
+                cellVisited[i,j] = false;
 
         leftBounder = westWall.transform.position.x;
         rightBounder = eastWall.transform.position.x;
@@ -587,139 +595,136 @@ public class World : MonoBehaviour
             cube.transform.localScale = new Vector3(0.1f,0.1f,0.1f);    
         }
         */
+
+        CreateColumnCellContainer();
+        CreateRowCellContainer();
         GenerateRandomMaze();
     }
 
     void GenerateRandomMaze()
     {
-        Debug.Log("----------- Maze Devide Init -------------");
-        MazeDevide(mazeMatrix, 0, Random.Range(1,MAZE_ROW-1), MAZE_COLUMN, MAZE_ROW, false);
-        //MazeDevide(mazeMatrix, 0, 6, MAZE_COLUMN, MAZE_ROW, false);
-        //MazeDevide(mazeMatrix, 0, 0, MAZE_COLUMN, MAZE_ROW, false);
+        Debug.Log("-----------Walk And Kill Init -------------");
+        int xCell = Random.Range(0, MAZE_COLUMN-2);
+        int yCell = Random.Range(0, MAZE_ROW-2);
+        WalkAndKill(xCell, yCell);
+        Destroy(rowContainer[0]);
+        Destroy(rowContainer[MAZE_ROW - 1]);
+        Destroy(colContainer[0]);
+        Destroy(colContainer[MAZE_COLUMN - 1]);
     }
 
-    void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height, bool limit)
+    void WalkAndKill(int xCell, int yCell)
     {
-        Debug.Log("startCol ? "+startCol);
-        Debug.Log("startRow ? "+startRow);
-        Debug.Log("width ? "+width);
-        Debug.Log("height ? "+height);
-        Debug.Log("limit ? "+limit);
-
-        if (width <= 1 || height <= 1)
+        bool meetDeadEnd = false;
+        List<int> listDir = new List<int>();
+        int step = 0;
+        do 
         {
-            Debug.Log("return");
-            return;
-        }
-        bool isHorizon;
-        if (width == height)
-        {
-            Debug.Log("lastHorizon ? "+lastHorizon);
-            //isHorizon = Random.Range(0,1) == 0;
-            isHorizon = !lastHorizon;
-        }
-        else
-        {
-            isHorizon = width < height;
-            lastHorizon = isHorizon;
-        }
-        
-        //first wall
-        int wFirstCol = startCol + (isHorizon ? Random.Range(0,width - 2) : 0);
-        int wFirstRow = startRow + (isHorizon ? 0 : Random.Range(0,height - 2));
+            step++;
+            Debug.Log("xCell ? "+xCell+" yCell ? "+yCell);
+            GameObject leftObj = new GameObject();
+            if (LeftAvailable(xCell,yCell))
+            {
+                leftObj = colContainer[xCell].transform.GetChild(yCell).gameObject;
+                listDir.Add(0);
+            }
 
-        //pass
-        int pEndCol = wFirstCol + (isHorizon ? 1 : 0);
-        int pEndRow = wFirstRow + (isHorizon ? 0 : 1);
-        //int pEndCol = pStartCol + (isHorizon ? Random.Range(0,width) : 0);
-        //int pEndRow = pStartRow + (isHorizon ? 0: Random.Range(0,height));
+            GameObject rightObj = new GameObject();
+            if (RightAvailable(xCell,yCell))
+            {
+                rightObj = colContainer[xCell+1].transform.GetChild(yCell).gameObject;
+                listDir.Add(1);
+            }
 
-        //end wall
-        int wEndCol = -1;
-        int wEndRow = -1;
-        if (!limit)
-        {
-            if ((isHorizon && pEndCol < MAZE_COLUMN - 1)
-            || !isHorizon
-            )
-                wEndCol = isHorizon ? MAZE_COLUMN - 1 : pEndCol;
-            if ((!isHorizon && pEndRow < MAZE_ROW - 1)
-            || isHorizon
-            )
-                wEndRow = isHorizon ? pEndRow : MAZE_ROW - 1;
-        }
-        else
-        {
-            if ((isHorizon && pEndCol < width)
-            || !isHorizon
-            )
-                wEndCol = isHorizon ? width : pEndCol;
-            if (!isHorizon && (pEndRow < height)
-            || isHorizon
-            )
-                wEndRow = isHorizon ? pEndRow : height;
-        }
+            GameObject upObj = new GameObject();
+            if (UpAvailable(xCell,yCell))
+            {
+                upObj = rowContainer[yCell+1].transform.GetChild(xCell).gameObject;
+                listDir.Add(2);
+            }
 
-        Debug.Log("isHorizon ? "+isHorizon);
-        Debug.Log("Start  Cell["+startCol+"]["+startRow+"]");// ? ("+maze[startCol,startRow].x+", "+maze[startCol,startRow].y+", "+maze[startCol,startRow].z+")");
-        Debug.Log("FirstWall Cell["+wFirstCol+"]["+wFirstRow+"]");// ? ("+maze[wFirstCol,wFirstRow].x+", "+maze[wFirstCol,wFirstRow].y+", "+maze[wFirstCol,wFirstRow].z+")");
-        Debug.Log("Pass Cell["+pEndCol+"]["+pEndRow+"]");// ? ("+maze[pEndCol,pEndRow].x+", "+maze[pEndCol,pEndRow].y+", "+maze[pEndCol,pEndRow].z+")");
-        Debug.Log("EndWall Cell["+wEndCol+"]["+wEndRow+"]");// ? ("+maze[wEndCol,wEndRow].x+", "+maze[wEndCol,wEndRow].y+", "+maze[wEndCol,wEndRow].z+")");
-       
-        bool isAWallCreated = false;
-        //draw first wall
-        if (isValidCell(startCol,startRow) && isValidCell(wFirstCol,wFirstRow))
-        {
-            CreateWall(maze[startCol,startRow],maze[wFirstCol,wFirstRow],isHorizon);
-            isAWallCreated = true;
-        }
+            GameObject downObj = new GameObject();
+            if (DownAvailable(xCell,yCell))
+            {
+                downObj = rowContainer[yCell].transform.GetChild(xCell).gameObject;
+                listDir.Add(3);
+            }
 
-        //draw last wall
-        if (isValidCell(pEndCol,pEndRow) && isValidCell(wEndCol,wEndRow))
-        {
-            CreateWall(maze[pEndCol,pEndRow],maze[wEndCol,wEndRow],isHorizon);
-            isAWallCreated = true;
-        }
+            if (listDir.Count > 0)
+            {
+                int dir = listDir[Random.Range(0,listDir.Count)];
+                Debug.Log("dir ?"+dir);
 
-        if (!isAWallCreated)
-            return;
+                if (dir == 0 /*LEFT*/&& LeftAvailable(xCell,yCell))
+                {
+                    Debug.Log("LEFT DIR");
+                    cellVisited[xCell-1,yCell] = true;
+                    Destroy(leftObj);
+                    //if (!CheckDeadEnd(xCell-1,yCell))
+                        xCell--;
+                }
+                else if (dir == 1 /*RIGHT*/&& RightAvailable(xCell,yCell))
+                {
+                    Debug.Log("RIGHT DIR");
+                    cellVisited[xCell+1,yCell] = true;
+                    Destroy(rightObj);   
+                    //if (!CheckDeadEnd(xCell+1,yCell))   
+                        xCell++;
+                }                   
+                else if (dir == 2 /*UP*/&& UpAvailable(xCell,yCell))
+                {
+                    Debug.Log("UP DIR");
+                    cellVisited[xCell,yCell+1] = true;
+                    Destroy(upObj);
+                    //if (!CheckDeadEnd(xCell,yCell+1))  
+                        yCell++;
+                }                     
+                else if (dir == 3 /*DOWN*/&& DownAvailable(xCell,yCell))
+                {
+                    Debug.Log("DOWN DIR");
+                    cellVisited[xCell,yCell-1] = true;
+                    Destroy(downObj);
+                    //if (!CheckDeadEnd(xCell,yCell-1))  
+                        yCell--;
+                }
+            }
+            else
+            {
+                if (step <= 1)
+                {
+                    if (xCell > 1)
+                        listDir.Add(0);
+                    if (xCell < MAZE_COLUMN - 1)
+                        listDir.Add(1);
+                    if (yCell > 1)
+                        listDir.Add(3);
+                    if (xCell < MAZE_ROW - 1)
+                        listDir.Add(2);
+                    int dir = listDir[Random.Range(0,listDir.Count)];
+                    GameObject obj = new GameObject();
+                    if (dir == 0)
+                        obj = colContainer[xCell].transform.GetChild(yCell).gameObject;
+                    else if (dir == 1)
+                        obj = colContainer[xCell+1].transform.GetChild(yCell).gameObject;
+                    else if (dir == 2)
+                        obj = rowContainer[yCell+1].transform.GetChild(xCell).gameObject;
+                    else if (dir == 3)
+                        obj = rowContainer[yCell].transform.GetChild(xCell).gameObject;
+                    cellVisited[xCell,yCell] = true;     
+                    Destroy(obj);
+                }    
+                meetDeadEnd = true;
+            }
+            listDir.Clear();    
+        } while (!meetDeadEnd);
 
-        //if (recursiveDebug[2])
-            //return;
-
-        if (isHorizon)
-        {
-            //up part
-            Debug.Log("--- Maze Devide Horizon Up Part -------------");
-            int randColUp = Random.Range(startCol, (int)Mathf.Min(width,MAZE_COLUMN - 1));
-            Debug.Log("randCol Up from "+startCol+" to "+(int)Mathf.Min(width,MAZE_COLUMN - 1)+" ? "+randColUp);
-            if (recursiveDebug[1])
-                recursiveDebug[2] = true;
-            MazeDevide(maze, randColUp, startRow + 1, width, height - startRow, false);
-
-            //down part
-            Debug.Log("--- Maze Devide Horizon Down Part -------------");
-            int randColDown = Random.Range(startCol, (int)Mathf.Min(width,MAZE_COLUMN - 1));
-            Debug.Log("randCol Down from "+startCol+" to "+(int)Mathf.Min(width,MAZE_COLUMN - 1)+" ? "+randColDown);
-           
-            MazeDevide(maze, randColDown, 0, width, startRow, true);
-        }
-        else
-        {
-            Debug.Log("--- Maze Devide Left Part -------------");
-            recursiveDebug[1] = true;
-            recursiveDebug[0] = true;
-            int randRowLeft = Random.Range(startRow, (int)Mathf.Min(height,MAZE_ROW - 1));
-            Debug.Log("randRowLeft from "+startRow+" to "+(int)Mathf.Min(height,MAZE_ROW - 1)+" ? "+randRowLeft);
-            
-            MazeDevide(maze, 0, randRowLeft, startCol, height, true);
-
-            Debug.Log("--- Maze Devide Right Part -------------");
-            int randRowRight = Random.Range(startRow, (int)Mathf.Min(height,MAZE_ROW - 1));
-            Debug.Log("randRowRight from "+startRow+" to "+(int)Mathf.Min(height,MAZE_ROW - 1)+" ? "+randRowRight);
-
-            MazeDevide(maze, startCol + 1, randRowRight, width - startCol, height, false);
-        }
+        for (int i = 0; i < MAZE_COLUMN - 1; i++)
+            for (int j = 0; j < MAZE_ROW - 1; j++)
+                if (cellVisited[i,j] == false)
+                {
+                    WalkAndKill(i,j);
+                    break;
+                }
     }
 
     Vector3 GetPositon(int col, int row, float cellSize, int mazeWidth, int mazeHeight)
@@ -733,7 +738,7 @@ public class World : MonoBehaviour
         //Debug.Log("Pos for cell["+col+"]["+row+"] ? ("+pos.x+", "+pos.y+", "+pos.z+")");
         return pos;
     }
-    void CreateWall(Vector3 fromPos, Vector3 endPos, bool horizon)
+    void CreateWall(Vector3 fromPos, Vector3 endPos, bool horizon, int index)
     {
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         Vector3 direction = endPos - fromPos;
@@ -742,17 +747,80 @@ public class World : MonoBehaviour
         {
             cube.transform.localScale = new Vector3(distance,0.1f,0.1f);
             cube.transform.position = new Vector3(fromPos.x + distance / 2, 0.0f, fromPos.z);
+            cube.transform.parent = rowContainer[index].transform;
         }
         else
         {
             cube.transform.localScale = new Vector3(0.1f,0.1f,distance);
             cube.transform.position = new Vector3(fromPos.x, 0.0f, fromPos.z + distance / 2);
+            cube.transform.parent = colContainer[index].transform;
         }
         cube.GetComponent<MeshRenderer>().material.color = Color.red;
-        cube.transform.parent = wallContainer.transform;
     }
     bool isValidCell(int col, int row)
     {
-        return col >= 0 && col < MAZE_COLUMN && row >= 0 && row < MAZE_ROW;
+        return col >= 0 && col < MAZE_COLUMN - 1 && row >= 0 && row < MAZE_ROW - 1;
+    }
+
+    void CreateColumnCellContainer()
+    {
+        for(int i = 0; i < MAZE_COLUMN; i++)
+        {
+            for(int j = 0; j < MAZE_COLUMN - 1; j++)
+            {
+                CreateWall(mazeMatrix[i,j],mazeMatrix[i,j+1],false,i);              
+            }
+        }
+    }
+
+    void CreateRowCellContainer()
+    {
+        for(int i = 0; i < MAZE_COLUMN - 1; i++)
+        {
+            for(int j = 0; j < MAZE_ROW; j++)
+            {
+                CreateWall(mazeMatrix[i,j],mazeMatrix[i+1,j],true,j);              
+            }
+        }
+    }
+
+    bool CheckDeadEnd(int xCell, int yCell)
+    {
+        bool leftAvailable = LeftAvailable(xCell,yCell);
+        bool rightAvailable = LeftAvailable(xCell,yCell);
+        bool upAvailable = UpAvailable(xCell,yCell);
+        bool downAvailable = DownAvailable(xCell,yCell);
+        Debug.Log("CheckDeadEnd for cell x ? "+xCell+" y ? "+yCell);
+        Debug.Log("leftAvailable ? "+leftAvailable);
+        Debug.Log("rightAvailable ? "+rightAvailable);
+        Debug.Log("upAvailable ? "+upAvailable);
+        Debug.Log("downAvailable ? "+downAvailable);
+        return !leftAvailable&&!rightAvailable&&!upAvailable&&!downAvailable;
+    }
+
+    bool LeftAvailable(int xCell, int yCell)
+    {
+        return isValidCell(xCell,yCell) && (xCell - 1 >= 0) && cellVisited[xCell - 1,yCell] == false;
+    }
+
+    bool RightAvailable(int xCell, int yCell)
+    {
+        return isValidCell(xCell,yCell) && (xCell + 1 < MAZE_COLUMN - 1) && cellVisited[xCell + 1,yCell] == false;
+    }
+    bool DownAvailable(int xCell, int yCell)
+    {
+        return isValidCell(xCell,yCell) && (yCell - 1 >= 0) && cellVisited[xCell,yCell-1] == false;
+    }
+    bool UpAvailable(int xCell, int yCell)
+    {
+        return isValidCell(xCell,yCell) && (yCell + 1 < MAZE_ROW - 1) && cellVisited[xCell,yCell+1] == false;
+    }
+    bool HasUnVisitCell()
+    {
+        for (int i = 0; i < MAZE_COLUMN - 1; i++)
+            for (int j = 0; j < MAZE_ROW; j++)
+                if (cellVisited[i,j] == false)
+                    return true;
+        return false;
     }
 }
