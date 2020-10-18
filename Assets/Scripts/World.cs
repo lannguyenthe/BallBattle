@@ -108,6 +108,7 @@ public class World : MonoBehaviour
     public GameObject playerSoldier;//prefab
     public GameObject ball;//prefab
     private GameObject ballInstance;
+    private GameObject wallContainer;
     private int friendId;
     public List<GameObject> attackerList;
     public List<GameObject> defenderList;
@@ -528,12 +529,18 @@ public class World : MonoBehaviour
     const int MAZE_ROW = 7;
     //int MAZE_ROW;
     Vector3[,] mazeMatrix;
+    bool[] recursiveDebug;
     void InitMazeGame()
     {
         Debug.Log("InitMazeGame");
         Globals.sGameState = Globals.GAME_MAZE_INIT;
         InitGlobalValue();
         InitNewGameValue(Globals.ROLE_ATTACKER);
+
+        wallContainer = new GameObject();
+        recursiveDebug = new bool[10];
+        for (int i = 0; i < 10; i++)
+            recursiveDebug[i] = false;
 
         leftBounder = westWall.transform.position.x;
         rightBounder = eastWall.transform.position.x;
@@ -583,15 +590,24 @@ public class World : MonoBehaviour
     void GenerateRandomMaze()
     {
         Debug.Log("----------- Maze Devide Init -------------");
-        MazeDevide(mazeMatrix, 0, Random.Range(0,MAZE_ROW-1), MAZE_COLUMN, MAZE_ROW, false);
+        MazeDevide(mazeMatrix, 0, Random.Range(0,MAZE_ROW-1), MAZE_COLUMN, MAZE_ROW, false, true);
         //MazeDevide(mazeMatrix, 0, 6, MAZE_COLUMN, MAZE_ROW, false, true);
         //MazeDevide(mazeMatrix, 0, 0, MAZE_COLUMN, MAZE_ROW, false, true);
     }
 
     void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height, bool limit, bool isInit)
     {
+        Debug.Log("startCol ? "+startCol);
+        Debug.Log("startRow ? "+startRow);
+        Debug.Log("width ? "+width);
+        Debug.Log("height ? "+height);
+        Debug.Log("limit ? "+limit);
+
         if (width <= 1 || height <= 1)
+        {
+            Debug.Log("return");
             return;
+        }
         bool isHorizon;
         /*
         if (width == height)
@@ -641,33 +657,64 @@ public class World : MonoBehaviour
                 wEndRow = isHorizon ? pEndRow : height;
         }
 
-        Debug.Log("isHorizon ? "+isHorizon+" width ? "+width+" height ? "+height+" limit ? "+limit);
+        Debug.Log("isHorizon ? "+isHorizon);
         Debug.Log("Start  Cell["+startCol+"]["+startRow+"]");// ? ("+maze[startCol,startRow].x+", "+maze[startCol,startRow].y+", "+maze[startCol,startRow].z+")");
         Debug.Log("FirstWall Cell["+wFirstCol+"]["+wFirstRow+"]");// ? ("+maze[wFirstCol,wFirstRow].x+", "+maze[wFirstCol,wFirstRow].y+", "+maze[wFirstCol,wFirstRow].z+")");
         Debug.Log("Pass Cell["+pEndCol+"]["+pEndRow+"]");// ? ("+maze[pEndCol,pEndRow].x+", "+maze[pEndCol,pEndRow].y+", "+maze[pEndCol,pEndRow].z+")");
         Debug.Log("EndWall Cell["+wEndCol+"]["+wEndRow+"]");// ? ("+maze[wEndCol,wEndRow].x+", "+maze[wEndCol,wEndRow].y+", "+maze[wEndCol,wEndRow].z+")");
        
+        bool isAWallCreated = false;
         //draw first wall
         if (wFirstCol >= 0 && wFirstRow >= 0)
+        {
             CreateWall(maze[startCol,startRow],maze[wFirstCol,wFirstRow],isHorizon);
-        
+            isAWallCreated = true;
+        }
+
         //draw last wall
         if (wEndCol >= 0 && wEndRow >= 0)
+        {
             CreateWall(maze[pEndCol,pEndRow],maze[wEndCol,wEndRow],isHorizon);
+            isAWallCreated = true;
+        }
+
+        if (!isAWallCreated)
+            return;
+
+        //if (recursiveDebug[1])
+            //return;
 
         if (isHorizon)
         {
             //up part
-            Debug.Log("----------- Maze Devide Up Part -------------");
-            MazeDevide(maze, Random.Range(0,MAZE_COLUMN - 1), startRow, width, height - startRow, false, false);
+            Debug.Log("--- Maze Devide Horizon Up Part -------------");
+            int randColUp = Random.Range(startCol, (int)Mathf.Max(width,MAZE_COLUMN - 1));
+            Debug.Log("randCol Up from "+startCol+" to "+(int)Mathf.Max(width,MAZE_COLUMN - 1)+" ? "+randColUp);
+
+            MazeDevide(maze, randColUp, startRow + 1, width, height - startRow, false, false);
+
             //down part
-            Debug.Log("----------- Maze Devide Down Part -------------");
-            MazeDevide(maze, Random.Range(0,MAZE_COLUMN - 1), 0, width, startRow, true, false);
+            Debug.Log("--- Maze Devide Horizon Down Part -------------");
+            int randColDown = Random.Range(startCol, (int)Mathf.Max(width,MAZE_COLUMN - 1));
+            Debug.Log("randCol Down from "+startCol+" to "+(int)Mathf.Max(width,MAZE_COLUMN - 1)+" ? "+randColDown);
+
+            MazeDevide(maze, randColDown, 0, width, startRow, true, false);
         }
         else
         {
-            //MazeDevide(maze, 0, startRow, width, height - startRow, true);
-            //MazeDevide(maze, startCol, 0, width, height - startRow, false);
+            Debug.Log("--- Maze Devide Left Part -------------");
+            recursiveDebug[0] = true;
+            int randRowLeft = Random.Range(startRow, (int)Mathf.Max(height,MAZE_ROW - 1));
+            Debug.Log("randRowLeft from "+startRow+" to "+(int)Mathf.Max(height,MAZE_ROW - 1)+" ? "+randRowLeft);
+            
+            MazeDevide(maze, 0, randRowLeft, startCol, height, true, false);
+
+            Debug.Log("--- Maze Devide Right Part -------------");
+            recursiveDebug[1] = true;
+            int randRowRight = Random.Range(startRow, (int)Mathf.Max(height,MAZE_ROW - 1));
+            Debug.Log("randRowRight from "+startRow+" to "+(int)Mathf.Max(height,MAZE_ROW - 1)+" ? "+randRowRight);
+
+            MazeDevide(maze, startCol + 1, randRowRight, width - startCol, height, false, false);
         }
     }
 
@@ -698,5 +745,6 @@ public class World : MonoBehaviour
             cube.transform.position = new Vector3(fromPos.x, 0.0f, fromPos.z + distance / 2);
         }
         cube.GetComponent<MeshRenderer>().material.color = Color.red;
+        cube.transform.parent = wallContainer.transform;
     }
 }
