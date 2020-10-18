@@ -525,10 +525,9 @@ public class World : MonoBehaviour
     float mazeHeight;
     float cellSize;
     const int MAZE_COLUMN = 7;
-    const int MAZE_ROW = 9;
+    const int MAZE_ROW = 7;
     //int MAZE_ROW;
     Vector3[,] mazeMatrix;
-
     void InitMazeGame()
     {
         Debug.Log("InitMazeGame");
@@ -542,7 +541,7 @@ public class World : MonoBehaviour
         downBounder = playerFence.transform.position.z;
         mazeWidth = rightBounder - leftBounder;
         mazeHeight = upBounder - downBounder;
-        cellSize = mazeHeight / MAZE_ROW;
+        cellSize = mazeHeight / 9;
         //MAZE_ROW = (int)(mazeHeight / cellSize);
 
         Debug.Log("InitMazeGame MAZE_COLUMN ? "+MAZE_COLUMN);
@@ -551,12 +550,21 @@ public class World : MonoBehaviour
         Debug.Log("InitMazeGame mazeHeight ? "+mazeHeight);
         Debug.Log("InitMazeGame cellSize ? "+cellSize);
 
-        mazeMatrix = new Vector3[MAZE_COLUMN,MAZE_ROW];
-        for (int col = 0; col < MAZE_COLUMN; col++)
+        Vector3[,] tempMaze = new Vector3[7,9];
+        for (int i = 0; i < 7; i++)
         {
-            for (int row = 0; row < MAZE_ROW; row++)
+            for (int j = 0; j < 9; j++)
             {
-                mazeMatrix[col,row] = GetPositon(col,row,cellSize,mazeWidth,mazeHeight);
+                tempMaze[i,j] = GetPositon(i,j,cellSize,7,9);
+            }
+        }
+
+        mazeMatrix = new Vector3[MAZE_COLUMN,MAZE_ROW];
+        for (int col = 0; col < 7; col++)
+        {
+            for (int row = 1; row < 8; row++)
+            {
+                mazeMatrix[col,row - 1] = tempMaze[col,row];
             }
         }
 
@@ -574,10 +582,10 @@ public class World : MonoBehaviour
 
     void GenerateRandomMaze()
     {
-        MazeDevide(mazeMatrix, 0, Random.Range(1,MAZE_ROW - 1), MAZE_COLUMN, MAZE_ROW);
+        MazeDevide(mazeMatrix, 0, Random.Range(1,MAZE_ROW - 1), MAZE_COLUMN, MAZE_ROW, false);
     }
 
-    void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height)
+    void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height, bool limit)
     {
         if (width < 1 || height < 1)
             return;
@@ -588,7 +596,7 @@ public class World : MonoBehaviour
         }
         else
             isHorizon = width < height;
-
+        
         //first wall
         int wFirstCol = startCol + (isHorizon ? Random.Range(0,width - 2) : 0);
         int wFirstRow = startRow + (isHorizon ? 0 : Random.Range(0,height - 2));
@@ -602,12 +610,23 @@ public class World : MonoBehaviour
         //end wall
         int wEndCol = -1;
         int wEndRow = -1;
-        if (pEndCol < width - 1)
-            wEndCol = isHorizon ? width - 1 : pEndCol;
-        if (pEndRow < height - 1)
-            wEndRow = isHorizon ? pEndRow : height - 1;
+        if (!limit)
+        {
+            if (pEndCol < MAZE_COLUMN - 1)
+                wEndCol = isHorizon ? MAZE_COLUMN - 1 : pEndCol;
+            if (pEndRow < MAZE_ROW - 1)
+                wEndRow = isHorizon ? pEndRow : MAZE_ROW - 1;
+        }
+        else
+        {
+            if (pEndCol < width)
+                wEndCol = isHorizon ? width : pEndCol;
+            if (pEndRow < height)
+                wEndRow = isHorizon ? pEndRow : height;
+        }
 
         Debug.Log("------------------------------------");
+        Debug.Log("isHorizon ? "+isHorizon+" width ? "+width+" height ? "+height);
         Debug.Log("Start  Cell["+startCol+"]["+startRow+"]");// ? ("+maze[startCol,startRow].x+", "+maze[startCol,startRow].y+", "+maze[startCol,startRow].z+")");
         Debug.Log("FirstWall Cell["+wFirstCol+"]["+wFirstRow+"]");// ? ("+maze[wFirstCol,wFirstRow].x+", "+maze[wFirstCol,wFirstRow].y+", "+maze[wFirstCol,wFirstRow].z+")");
         Debug.Log("Pass Cell["+pEndCol+"]["+pEndRow+"]");// ? ("+maze[pEndCol,pEndRow].x+", "+maze[pEndCol,pEndRow].y+", "+maze[pEndCol,pEndRow].z+")");
@@ -620,13 +639,24 @@ public class World : MonoBehaviour
         //draw last wall
         if (wEndCol >= 0 && wEndRow >= 0)
             CreateWall(maze[pEndCol,pEndRow],maze[wEndCol,wEndRow],isHorizon);
+
+        if (isHorizon)
+        {
+            MazeDevide(maze, Random.Range(0,MAZE_COLUMN - 1), startRow, width, height - startRow, false);
+            MazeDevide(maze, Random.Range(0,MAZE_COLUMN - 1), 0, width, startRow, true);
+        }
+        else
+        {
+            //MazeDevide(maze, 0, startRow, width, height - startRow, true);
+            //MazeDevide(maze, startCol, 0, width, height - startRow, false);
+        }
     }
 
-    Vector3 GetPositon(int col, int row, float cellSize, float mazeWidth, float mazeHeight)
+    Vector3 GetPositon(int col, int row, float cellSize, int mazeWidth, int mazeHeight)
     {
         Vector3 pos;
-        int colOffset = col - MAZE_COLUMN / 2;
-        int rowOffset = row - MAZE_ROW / 2;
+        int colOffset = col - mazeWidth / 2;
+        int rowOffset = row - mazeHeight / 2;
         pos.y = 0;
         pos.x = colOffset * cellSize;
         pos.z = rowOffset * cellSize;
@@ -648,5 +678,6 @@ public class World : MonoBehaviour
             cube.transform.localScale = new Vector3(0.1f,0.1f,distance);
             cube.transform.position = new Vector3(fromPos.x, 0.0f, fromPos.z + distance / 2);
         }
+        cube.GetComponent<MeshRenderer>().material.color = Color.red;
     }
 }
