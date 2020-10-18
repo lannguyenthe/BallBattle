@@ -740,6 +740,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6977341873046123435, guid: c45b28fd5ac1a7f4692f7c98d835f54a,
+        type: 3}
+      propertyPath: MAZE_COLUMN
+      value: 8
+      objectReference: {fileID: 0}
     - target: {fileID: 6977341873046123436, guid: c45b28fd5ac1a7f4692f7c98d835f54a,
         type: 3}
       propertyPath: m_Name

@@ -517,6 +517,18 @@ public class World : MonoBehaviour
     }
 
     //maze game implement
+    float leftBounder;
+    float rightBounder;
+    float upBounder;
+    float downBounder;
+    float mazeWidth;
+    float mazeHeight;
+    float cellSize;
+    const int MAZE_COLUMN = 7;
+    const int MAZE_ROW = 9;
+    //int MAZE_ROW;
+    Vector3[,] mazeMatrix;
+
     void InitMazeGame()
     {
         Debug.Log("InitMazeGame");
@@ -524,11 +536,117 @@ public class World : MonoBehaviour
         InitGlobalValue();
         InitNewGameValue(Globals.ROLE_ATTACKER);
 
+        leftBounder = westWall.transform.position.x;
+        rightBounder = eastWall.transform.position.x;
+        upBounder = enemyFence.transform.position.z;
+        downBounder = playerFence.transform.position.z;
+        mazeWidth = rightBounder - leftBounder;
+        mazeHeight = upBounder - downBounder;
+        cellSize = mazeHeight / MAZE_ROW;
+        //MAZE_ROW = (int)(mazeHeight / cellSize);
+
+        Debug.Log("InitMazeGame MAZE_COLUMN ? "+MAZE_COLUMN);
+        Debug.Log("InitMazeGame MAZE_ROW ? "+MAZE_ROW);
+        Debug.Log("InitMazeGame mazeWidth ? "+mazeWidth);
+        Debug.Log("InitMazeGame mazeHeight ? "+mazeHeight);
+        Debug.Log("InitMazeGame cellSize ? "+cellSize);
+
+        mazeMatrix = new Vector3[MAZE_COLUMN,MAZE_ROW];
+        for (int col = 0; col < MAZE_COLUMN; col++)
+        {
+            for (int row = 0; row < MAZE_ROW; row++)
+            {
+                mazeMatrix[col,row] = GetPositon(col,row,cellSize,mazeWidth,mazeHeight);
+            }
+        }
+
+        //test matrix
+        /*
+        foreach (Vector3 pos in mazeMatrix)
+        {
+            GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.transform.position = pos;
+            cube.transform.localScale = new Vector3(0.1f,0.1f,0.1f);    
+        }
+        */
         GenerateRandomMaze();
     }
 
     void GenerateRandomMaze()
     {
+        MazeDevide(mazeMatrix, 0, Random.Range(1,MAZE_ROW - 1), MAZE_COLUMN, MAZE_ROW);
+    }
+
+    void MazeDevide(Vector3[,] maze, int startCol, int startRow, int width, int height)
+    {
+        if (width < 1 || height < 1)
+            return;
+        bool isHorizon;
+        if (width == height)
+        {
+            isHorizon = Random.Range(0,1) == 0;
+        }
+        else
+            isHorizon = width < height;
+
+        //first wall
+        int wFirstCol = startCol + (isHorizon ? Random.Range(0,width - 2) : 0);
+        int wFirstRow = startRow + (isHorizon ? 0 : Random.Range(0,height - 2));
+
+        //pass
+        int pEndCol = wFirstCol + (isHorizon ? 1 : 0);
+        int pEndRow = wFirstRow + (isHorizon ? 0 : 1);
+        //int pEndCol = pStartCol + (isHorizon ? Random.Range(0,width) : 0);
+        //int pEndRow = pStartRow + (isHorizon ? 0: Random.Range(0,height));
+
+        //end wall
+        int wEndCol = -1;
+        int wEndRow = -1;
+        if (pEndCol < width - 1)
+            wEndCol = isHorizon ? width - 1 : pEndCol;
+        if (pEndRow < height - 1)
+            wEndRow = isHorizon ? pEndRow : height - 1;
+
+        Debug.Log("------------------------------------");
+        Debug.Log("Start  Cell["+startCol+"]["+startRow+"]");// ? ("+maze[startCol,startRow].x+", "+maze[startCol,startRow].y+", "+maze[startCol,startRow].z+")");
+        Debug.Log("FirstWall Cell["+wFirstCol+"]["+wFirstRow+"]");// ? ("+maze[wFirstCol,wFirstRow].x+", "+maze[wFirstCol,wFirstRow].y+", "+maze[wFirstCol,wFirstRow].z+")");
+        Debug.Log("Pass Cell["+pEndCol+"]["+pEndRow+"]");// ? ("+maze[pEndCol,pEndRow].x+", "+maze[pEndCol,pEndRow].y+", "+maze[pEndCol,pEndRow].z+")");
+        Debug.Log("EndWall Cell["+wEndCol+"]["+wEndRow+"]");// ? ("+maze[wEndCol,wEndRow].x+", "+maze[wEndCol,wEndRow].y+", "+maze[wEndCol,wEndRow].z+")");
+       
+        //draw first wall
+        if (wFirstCol >= 0 && wFirstRow >= 0)
+            CreateWall(maze[startCol,startRow],maze[wFirstCol,wFirstRow],isHorizon);
         
+        //draw last wall
+        if (wEndCol >= 0 && wEndRow >= 0)
+            CreateWall(maze[pEndCol,pEndRow],maze[wEndCol,wEndRow],isHorizon);
+    }
+
+    Vector3 GetPositon(int col, int row, float cellSize, float mazeWidth, float mazeHeight)
+    {
+        Vector3 pos;
+        int colOffset = col - MAZE_COLUMN / 2;
+        int rowOffset = row - MAZE_ROW / 2;
+        pos.y = 0;
+        pos.x = colOffset * cellSize;
+        pos.z = rowOffset * cellSize;
+        //Debug.Log("Pos for cell["+col+"]["+row+"] ? ("+pos.x+", "+pos.y+", "+pos.z+")");
+        return pos;
+    }
+    void CreateWall(Vector3 fromPos, Vector3 endPos, bool horizon)
+    {
+        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        Vector3 direction = endPos - fromPos;
+        float distance = direction.magnitude;
+        if (horizon)
+        {
+            cube.transform.localScale = new Vector3(distance,0.1f,0.1f);
+            cube.transform.position = new Vector3(fromPos.x + distance / 2, 0.0f, fromPos.z);
+        }
+        else
+        {
+            cube.transform.localScale = new Vector3(0.1f,0.1f,distance);
+            cube.transform.position = new Vector3(fromPos.x, 0.0f, fromPos.z + distance / 2);
+        }
     }
 }

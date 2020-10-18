@@ -125,7 +125,7 @@ public class UIController : MonoBehaviour
 
     void ShowMessage()
     {
-        Debug.Log("ShowMessage sMatchCount ? "+Globals.sMatchCount);
+        //Debug.Log("ShowMessage sMatchCount ? "+Globals.sMatchCount);
         if (Globals.sMatchCount > Globals.MAX_MATCH)
         {
             transform.GetChild(Globals.POPUP).transform.GetChild(0).GetComponent<Text>().text = Globals.STR_GAME_FINISHED;
