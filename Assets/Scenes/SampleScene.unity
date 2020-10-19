@@ -2130,6 +2130,36 @@ PrefabInstance:
       propertyPath: offColorBg.b
       value: 0.19607843
       objectReference: {fileID: 0}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: isOn
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: mainCamera
+      value: 
+      objectReference: {fileID: 963194227}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: arCamera
+      value: 
+      objectReference: {fileID: 415847961}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: arSession
+      value: 
+      objectReference: {fileID: 924826333}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: battleGame
+      value: 
+      objectReference: {fileID: 457044578}
+    - target: {fileID: 8845035212790476029, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SwitchingSFX
+      objectReference: {fileID: 0}
     - target: {fileID: 8855675242456816602, guid: f736ef895720643b3b2e8a3a5f092df6,
         type: 3}
       propertyPath: m_SizeDelta.x
@@ -2717,6 +2747,36 @@ PrefabInstance:
         type: 3}
       propertyPath: offColorBg.b
       value: 0.19607843
+      objectReference: {fileID: 0}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: isOn
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: mainCamera
+      value: 
+      objectReference: {fileID: 963194227}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: arCamera
+      value: 
+      objectReference: {fileID: 415847961}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: arSession
+      value: 
+      objectReference: {fileID: 924826333}
+    - target: {fileID: 8844517720634502151, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: battleGame
+      value: 
+      objectReference: {fileID: 457044578}
+    - target: {fileID: 8845035212790476029, guid: f736ef895720643b3b2e8a3a5f092df6,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: SwitchingSound
       objectReference: {fileID: 0}
     - target: {fileID: 8855675242456816602, guid: f736ef895720643b3b2e8a3a5f092df6,
         type: 3}

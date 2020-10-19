@@ -29,6 +29,8 @@ public class ToggleController : MonoBehaviour
 	public GameObject arSession;
 	public GameObject battleGame;
 	//ARPlaneManager planeTracker;
+	private bool switchingSound = false;
+	private bool switchingSFX = false;
 
 	void Awake()
 	{
@@ -60,6 +62,16 @@ public class ToggleController : MonoBehaviour
 		if(switching)
 		{
 			Toggle(isOn);
+		}
+
+		if(switchingSound)
+		{
+			Toggle(Globals.sHasSound);
+		}
+
+		if(switchingSFX)
+		{
+			Toggle(Globals.sHasSfx);
 		}
 		
 		if (Permission.HasUserAuthorizedPermission(Permission.Camera) 
@@ -100,8 +112,16 @@ public class ToggleController : MonoBehaviour
 	{
 		switching = true;
 	}
-		
 
+	public void SwitchingSound()
+	{
+		switchingSound = true;
+	}
+
+	public void SwitchingSFX()
+	{
+		switchingSFX = true;
+	}
 
 	public void Toggle(bool toggleStatus)
 	{
@@ -118,12 +138,15 @@ public class ToggleController : MonoBehaviour
 			
 	}
 
-
 	Vector3 SmoothMove(GameObject toggleHandle, float startPosX, float endPosX)
 	{
-		
 		Vector3 position = new Vector3 (Mathf.Lerp(startPosX, endPosX, t += speed * Time.deltaTime), 0f, 0f);
-		StopSwitching();
+		if (switching)
+			StopSwitching();
+		else if (switchingSound)
+			StopSwitchingSound();
+		else if (switchingSFX)
+			StopSwitchingSFX();
 		return position;
 	}
 
@@ -165,4 +188,45 @@ public class ToggleController : MonoBehaviour
 		}
 	}
 
+	void StopSwitchingSFX()
+	{
+		if(t > 1.0f)
+		{
+			switchingSFX = false;
+
+			t = 0.0f;
+			switch(Globals.sHasSfx)
+			{
+			case true:
+				Globals.sHasSfx = false;
+				break;
+
+			case false:
+				Globals.sHasSfx = true;
+				break;
+			}
+
+		}
+	}
+
+	void StopSwitchingSound()
+	{
+		if(t > 1.0f)
+		{
+			switchingSound = false;
+
+			t = 0.0f;
+			switch(Globals.sHasSound)
+			{
+			case true:
+				Globals.sHasSound = false;
+				break;
+
+			case false:
+				Globals.sHasSound = true;
+				break;
+			}
+
+		}
+	}
 }

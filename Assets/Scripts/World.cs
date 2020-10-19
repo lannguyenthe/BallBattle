@@ -84,7 +84,8 @@ public static class Globals
     public static float sPlayerSpendEnergyPercent;
     public static float sEnemySpendEnergyPercent;
     public static float sMatchTimeLeft;
-
+    public static bool sHasSound = false;
+    public static bool sHasSfx = false;
     //soldier define
     public const int SOLDIER_ARROW = 0;
     public const int SOLDIER_HIGHLIGHT = 1;
