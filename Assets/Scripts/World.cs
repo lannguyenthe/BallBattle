@@ -559,6 +559,10 @@ public class World : MonoBehaviour
             Globals.sEnemyScore = 0;
             Globals.sMatchCount = Globals.MAX_MATCH;
         }
+        else if (value == 6 && Globals.sGameState == Globals.GAME_MAZE_INIT)
+        {
+            ResetMaze();
+        }
         //Debug.Log("Cheat attackList count ? "+attackerList.Count);
         //Debug.Log("Cheat defenderList count ? "+defenderList.Count);
     }
@@ -590,12 +594,14 @@ public class World : MonoBehaviour
         wallContainer = new GameObject();
         rowContainer = new GameObject[MAZE_ROW];
         for (int i = 0; i < MAZE_ROW; i++)
+        {
             rowContainer[i] = new GameObject();
-
+        }
         colContainer = new GameObject[MAZE_COLUMN];
         for (int i = 0; i < MAZE_COLUMN; i++)
+        {
             colContainer[i] = new GameObject();
-
+        }
         cellVisited = new bool[MAZE_COLUMN,MAZE_ROW];
         for (int i = 0; i < MAZE_COLUMN; i++)
             for (int j = 0; j < MAZE_ROW; j++)
@@ -649,6 +655,29 @@ public class World : MonoBehaviour
         GenerateRandomMaze();
     }
 
+    void ResetMaze()
+    {
+        //for (int i = 0; i < MAZE_ROW - 1; i++)
+            //Destroy(rowContainer[i]);
+        //for (int i = 0; i < MAZE_ROW - 1; i++)
+            //Destroy(colContainer[i]);
+        //foreach (GameObject obj in colContainer)
+            //Destroy(obj);
+        InitMazeGame();
+    }
+
+    const string gcTag = "gcObj";
+    GameObject[] gcObjects;
+
+    void DestroyAllGcObjects()
+    {
+        gcObjects = GameObject.FindGameObjectsWithTag (gcTag);
+        
+        for(var i = 0 ; i < gcObjects.Length ; i ++)
+        {
+            Destroy(gcObjects[i]);
+        }
+    }
     void GenerateRandomMaze()
     {
         Debug.Log("-----------Walk And Kill Init -------------");
@@ -659,6 +688,7 @@ public class World : MonoBehaviour
         Destroy(rowContainer[MAZE_ROW - 1]);
         Destroy(colContainer[0]);
         Destroy(colContainer[MAZE_COLUMN - 1]);
+        DestroyAllGcObjects();
     }
 
     void WalkAndKill(int xCell, int yCell)
@@ -671,6 +701,7 @@ public class World : MonoBehaviour
             step++;
             Debug.Log("xCell ? "+xCell+" yCell ? "+yCell);
             GameObject leftObj = new GameObject();
+            leftObj.gameObject.tag = gcTag;
             if (LeftAvailable(xCell,yCell))
             {
                 leftObj = colContainer[xCell].transform.GetChild(yCell).gameObject;
@@ -678,6 +709,7 @@ public class World : MonoBehaviour
             }
 
             GameObject rightObj = new GameObject();
+            rightObj.gameObject.tag = gcTag;
             if (RightAvailable(xCell,yCell))
             {
                 rightObj = colContainer[xCell+1].transform.GetChild(yCell).gameObject;
@@ -685,6 +717,7 @@ public class World : MonoBehaviour
             }
 
             GameObject upObj = new GameObject();
+            upObj.gameObject.tag = gcTag;
             if (UpAvailable(xCell,yCell))
             {
                 upObj = rowContainer[yCell+1].transform.GetChild(xCell).gameObject;
@@ -692,6 +725,7 @@ public class World : MonoBehaviour
             }
 
             GameObject downObj = new GameObject();
+            downObj.gameObject.tag = gcTag;
             if (DownAvailable(xCell,yCell))
             {
                 downObj = rowContainer[yCell].transform.GetChild(xCell).gameObject;
