@@ -14,7 +14,23 @@ public class UIController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Globals.sGameState == Globals.GAME_PAUSE)
+        if (Globals.sGameState == Globals.GAME_INIT)
+        {
+            Globals.sGameState = Globals.GAME_MENU;
+        }
+        else if (Globals.sGameState == Globals.GAME_MENU)
+        {
+            transform.GetChild(Globals.MENU).gameObject.SetActive(true);
+            transform.GetChild(Globals.OPTION).gameObject.SetActive(false);
+            transform.GetChild(Globals.IGM).gameObject.SetActive(false);
+            transform.GetChild(Globals.POPUP).gameObject.SetActive(false);
+            ShowAllUI(false);
+        }
+        else if (Globals.sGameState == Globals.GAME_OPTION)
+        {
+            transform.GetChild(Globals.OPTION).gameObject.SetActive(true);
+        }
+        else if (Globals.sGameState == Globals.GAME_PAUSE)
         {
             GamePause();
             return;
@@ -35,6 +51,11 @@ public class UIController : MonoBehaviour
         else if (Globals.sGameState == Globals.GAME_RUNNING || Globals.sGameState >= Globals.GAME_MAZE_INIT)
         {
             transform.GetChild(Globals.POPUP).gameObject.SetActive(false);
+            transform.GetChild(Globals.MENU).gameObject.SetActive(false);
+            transform.GetChild(Globals.OPTION).gameObject.SetActive(false);
+            ShowAllUI(true);
+            if (Globals.sGameState >= Globals.GAME_MAZE_INIT)
+                ShowEnergyBar(false);
             UpdateEnergyBar();
             UpdateTimeBar();
             UpdatePlayerInfoBar();
@@ -52,14 +73,14 @@ public class UIController : MonoBehaviour
     void UpdateTimeBar()
     {
         string sec = string.Format("{0}s", (int)Globals.sMatchTimeLeft);
-        transform.GetChild(Globals.TIME_INFO).transform.GetChild(1).GetChild(0).GetComponent<Text>().text = sec;
+        transform.GetChild(Globals.TIME_INFO).transform.GetChild(2).GetChild(0).GetComponent<Text>().text = sec;
     }
 
     void UpdateEnergyBar()
     {
         if (Globals.sAttackerEnergyPoint < Globals.MAX_ENERGY_POINT)
         {
-            Globals.sAttackerEnergyPoint += Globals.ENERGY_REGERENATION * Time.deltaTime;
+            Globals.sAttackerEnergyPoint += (Globals.sIsRushGame ? Globals.RUSH_ENERGY_REGERENATION : Globals.ENERGY_REGERENATION) * Time.deltaTime;
             float atkPercent = Globals.sAttackerEnergyPoint / Globals.MAX_ENERGY_POINT;
             int percent = (int)(atkPercent * 100);
             float offset = ((100 / Globals.MAX_ENERGY_POINT) - (int)(100 / Globals.MAX_ENERGY_POINT)) / 100;
@@ -81,7 +102,7 @@ public class UIController : MonoBehaviour
 
         if (Globals.sDefenderEnergyPoint < Globals.MAX_ENERGY_POINT)
         {
-            Globals.sDefenderEnergyPoint += Globals.ENERGY_REGERENATION * Time.deltaTime;
+            Globals.sDefenderEnergyPoint += (Globals.sIsRushGame ? Globals.RUSH_ENERGY_REGERENATION : Globals.ENERGY_REGERENATION) * Time.deltaTime;
             float defPercent = Globals.sDefenderEnergyPoint / Globals.MAX_ENERGY_POINT;
             int percent = (int)(defPercent * 100);
             float offset = ((100 / Globals.MAX_ENERGY_POINT) - (int)(100 / Globals.MAX_ENERGY_POINT)) / 100;
@@ -144,7 +165,7 @@ public class UIController : MonoBehaviour
             {
                 transform.GetChild(Globals.POPUP).transform.GetChild(3).GetComponent<Text>().text = Globals.STR_PLAY_MAZE;
                 //Globals.sGameState = Globals.GAME_MAZE_INIT;
-                HideEnergyBar();
+                ShowEnergyBar(false);
                 transform.GetChild(Globals.POPUP).gameObject.SetActive(true);
                 return;
             }
@@ -195,6 +216,7 @@ public class UIController : MonoBehaviour
     {
         transform.GetChild(Globals.IGM).gameObject.SetActive(true);
         Time.timeScale = 0.0f;
+        Globals.sGameState = Globals.GAME_PAUSE;
     }
 
     public void GameResume()
@@ -204,9 +226,27 @@ public class UIController : MonoBehaviour
         Globals.sGameState = Globals.GAME_RUNNING;
     }
 
-    void HideEnergyBar()
+    void ShowEnergyBar(bool active)
     {
-        transform.GetChild(Globals.PLAYER_INFO).gameObject.SetActive(false);
-        transform.GetChild(Globals.ENEMY_INFO).gameObject.SetActive(false);
+        transform.GetChild(Globals.PLAYER_INFO).gameObject.SetActive(active);
+        transform.GetChild(Globals.ENEMY_INFO).gameObject.SetActive(active);
+    }
+
+    void ShowAllUI(bool active)
+    {
+        ShowEnergyBar(active);
+        transform.GetChild(Globals.TIME_INFO).gameObject.SetActive(active);
+        transform.GetChild(Globals.AR).gameObject.SetActive(active);
+    }
+
+    public void GameOption()
+    {
+        Globals.sGameState = Globals.GAME_OPTION;
+    }
+
+    public void GameOptionBack()
+    {
+        Time.timeScale = 1.0f;//resume for IGM case
+        Globals.sGameState = Globals.GAME_MENU;
     }
 }

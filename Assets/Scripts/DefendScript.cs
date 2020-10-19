@@ -89,7 +89,7 @@ public class DefendScript : MonoBehaviour
             if (this.transform.position == originalPos)
             {
                 UseArrowAndDetectRange(false,false);
-                if (lifeTime > REACTIVE_TIME)
+                if (lifeTime > REACTIVE_TIME || Globals.sIsRushGame)
                     currentState = Globals.DEF_STATE_ACTIVE;
             }
         }

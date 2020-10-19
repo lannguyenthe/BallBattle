@@ -21,7 +21,10 @@ public static class Globals
     public const string STR_ATTACKER = "(Attacker)";
 
     //Game states
-    public const int GAME_RUNNING = 0;
+    public const int GAME_INIT = 0;
+    public const int GAME_MENU = GAME_INIT + 1;
+    public const int GAME_OPTION = GAME_MENU + 1;
+    public const int GAME_RUNNING = GAME_OPTION + 1;
     public const int GAME_OVER = GAME_RUNNING + 1;
     public const int GAME_PAUSE = GAME_OVER + 1;
     public const int GAME_RESUME = GAME_PAUSE + 1;
@@ -38,7 +41,7 @@ public static class Globals
     public static int sMatchCount;
     public static int sPlayerScore;
     public static int sEnemyScore;
-
+    public static bool sIsRushGame = false;
     //attack state
     public const int ATK_STATE_IDLE = 111;
     public const int ATK_STATE_ACTIVE = ATK_STATE_IDLE + 1;
@@ -58,20 +61,24 @@ public static class Globals
 
     //Time info
     public const float TIME_PER_MATCH = 140;//seconds
+    public const float RUSH_TIME_PER_MATCH = 15;//seconds
 
     //regeneration bar
     public const float ENERGY_REGERENATION = 0.5f;//0.5 per seccond
+    public const float RUSH_ENERGY_REGERENATION = 2.0f;//0.5 per seccond
     public const float DEF_ENERGY_COST = 3;//points
     public const float ATK_ENERGY_COST = 2;//points
     public const float MAX_ENERGY_POINT = 6;
 
     //canvas define
-    public const int PLAYER_INFO = 0;
-    public const int ENEMY_INFO = 1;
-    public const int TIME_INFO = 2;
-    public const int POPUP = 3;
-    public const int AR = 4;
-    public const int IGM = 5;
+    public const int MENU = 0;
+    public const int PLAYER_INFO = MENU + 1;
+    public const int ENEMY_INFO = PLAYER_INFO + 1;
+    public const int TIME_INFO = ENEMY_INFO + 1;
+    public const int POPUP = TIME_INFO + 1;
+    public const int AR = POPUP + 1;
+    public const int IGM = AR + 1;
+    public const int OPTION = IGM + 1;
     public static float sAttackerEnergyPoint;
     public static float sDefenderEnergyPoint;
     public static float sPlayerSpendEnergyPercent;
@@ -115,13 +122,15 @@ public class World : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        InitGlobalValue();
-        InitNewGameValue(Globals.ROLE_ATTACKER);
+        Globals.sGameState = Globals.GAME_INIT;
+        //InitGlobalValue();
+        //InitNewGameValue(Globals.ROLE_ATTACKER);
     }
 
     // Update is called once per frame
     void Update()
     {
+        //Debug.Log("Globals.sGameState ? "+Globals.sGameState);
         if (Globals.sGameState == Globals.GAME_PAUSE)
             return;
 
@@ -359,6 +368,20 @@ public class World : MonoBehaviour
     }
 
     //all games observer
+    public void PlayNormalGame()
+    {
+        InitGlobalValue();
+        InitNewGameValue(Globals.ROLE_ATTACKER);
+        Globals.sIsRushGame = false;
+    }
+
+    public void PlayRushGame()
+    {
+        InitGlobalValue();
+        InitNewGameValue(Globals.ROLE_ATTACKER);
+        Globals.sIsRushGame = true;
+    }
+
     void InitGlobalValue()
     {
         Globals.sPlayerScore = 0;
@@ -409,7 +432,7 @@ public class World : MonoBehaviour
         InitEnergyBar();
 
         friendId = -1;
-        Globals.sMatchTimeLeft = Globals.TIME_PER_MATCH;
+        Globals.sMatchTimeLeft = Globals.sIsRushGame ? Globals.RUSH_TIME_PER_MATCH : Globals.TIME_PER_MATCH;
         Globals.sPlayerRole = role;
         Debug.Log("InitNewGameValue playerRole ? "+Globals.sPlayerRole);
 
@@ -517,7 +540,9 @@ public class World : MonoBehaviour
         //Debug.Log("Cheat defenderList count ? "+defenderList.Count);
     }
 
-    //maze game implement
+//=================================================================
+//                      maze game implement
+//=================================================================
     float leftBounder;
     float rightBounder;
     float upBounder;

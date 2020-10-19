@@ -94,7 +94,7 @@ public class AttackScript : MonoBehaviour
                 this.transform.LookAt(targetGate.transform);
                 this.transform.position = Vector3.MoveTowards(this.transform.position, 
                                                           targetGate.transform.position, 
-                                                          CARRYING_SPEED * Time.deltaTime);                                                                       
+                                                          (Globals.sIsRushGame ? NORMAL_SPEED : CARRYING_SPEED) * Time.deltaTime);                                                                       
             }
         }
         else if (currentState == Globals.ATK_STATE_PASS_THE_BALL)
