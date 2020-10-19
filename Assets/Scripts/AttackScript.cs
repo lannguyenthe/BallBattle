@@ -17,6 +17,7 @@ public class AttackScript : MonoBehaviour
     public Material activeMat;
     public Material idleMat;
     private float lifeTime;
+    //AudioSource audio;
 
     // Start is called before the first frame update
     void Start()
@@ -149,6 +150,13 @@ public class AttackScript : MonoBehaviour
                 Globals.sGameState = Globals.GAME_OVER;
                 Globals.sMessage = Globals.STR_REACH_GATE;
             }
+            /*
+            if (Globals.sHasSfx)
+            {
+               audio = this.GetComponent<AudioSource>();
+                audio.Play();
+            }
+            */
             Destroy(this.gameObject);
         }
     }

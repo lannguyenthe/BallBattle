@@ -120,6 +120,10 @@ public class World : MonoBehaviour
     private int friendId;
     public List<GameObject> attackerList;
     public List<GameObject> defenderList;
+
+    //audio
+    public AudioSource audioSoundAP;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -133,7 +137,17 @@ public class World : MonoBehaviour
     {
         //Debug.Log("Globals.sGameState ? "+Globals.sGameState);
         if (Globals.sGameState == Globals.GAME_PAUSE)
+        {
+            if (Globals.sHasSound)
+                audioSoundAP.Stop();
             return;
+        }
+        else if (Globals.sGameState == Globals.GAME_RESUME)
+        {
+            if (Globals.sHasSound)
+                audioSoundAP.Play();
+            Globals.sGameState = Globals.GAME_RUNNING;
+        }
 
         Globals.sMatchTimeLeft -= Time.deltaTime;
         //Debug.Log("Update defenderList count ? "+defenderList.Count);
@@ -459,6 +473,13 @@ public class World : MonoBehaviour
             Globals.sGameState = Globals.GAME_SHOW_MESSAGE;
         else if(Globals.sGameState < Globals.GAME_MAZE_INIT)
             Globals.sGameState = Globals.GAME_RUNNING;
+
+        if (Globals.sGameState == Globals.GAME_RUNNING
+        &&  Globals.sHasSound
+        )
+        {
+            audioSoundAP.Play(0);
+        }
     }
 
     public void NextMatch()
@@ -510,6 +531,7 @@ public class World : MonoBehaviour
                 Globals.sEnemyScore++;
             }
         }
+        audioSoundAP.Stop();
         Globals.sGameState = Globals.GAME_SHOW_MESSAGE;
     }
 

@@ -223,7 +223,7 @@ public class UIController : MonoBehaviour
     {
         transform.GetChild(Globals.IGM).gameObject.SetActive(false);
         Time.timeScale = 1.0f;
-        Globals.sGameState = Globals.GAME_RUNNING;
+        Globals.sGameState = Globals.GAME_RESUME;
     }
 
     void ShowEnergyBar(bool active)
