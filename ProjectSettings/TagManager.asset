@@ -12,6 +12,8 @@ TagManager:
   - Toggle Bg
   - Handle
   - ARCamera
+  - gcObj
+  - Wall
   layers:
   - Default
   - TransparentFX

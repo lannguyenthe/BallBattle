@@ -584,6 +584,10 @@ public class World : MonoBehaviour
     GameObject[] rowContainer;
     GameObject[] colContainer;
     bool[,] cellVisited;
+    const string gcTag = "gcObj";
+    const string wallTag = "Wall";
+    GameObject[] gcObjects;
+    GameObject mazePlayer;
     void InitMazeGame()
     {
         Debug.Log("InitMazeGame");
@@ -657,27 +661,20 @@ public class World : MonoBehaviour
 
     void ResetMaze()
     {
-        //for (int i = 0; i < MAZE_ROW - 1; i++)
-            //Destroy(rowContainer[i]);
-        //for (int i = 0; i < MAZE_ROW - 1; i++)
-            //Destroy(colContainer[i]);
-        //foreach (GameObject obj in colContainer)
-            //Destroy(obj);
+        DestroyAllObjects(wallTag);
         InitMazeGame();
     }
 
-    const string gcTag = "gcObj";
-    GameObject[] gcObjects;
-
-    void DestroyAllGcObjects()
+    void DestroyAllObjects(string tag)
     {
-        gcObjects = GameObject.FindGameObjectsWithTag (gcTag);
+        gcObjects = GameObject.FindGameObjectsWithTag (tag);
         
         for(var i = 0 ; i < gcObjects.Length ; i ++)
         {
             Destroy(gcObjects[i]);
         }
     }
+
     void GenerateRandomMaze()
     {
         Debug.Log("-----------Walk And Kill Init -------------");
@@ -688,7 +685,15 @@ public class World : MonoBehaviour
         Destroy(rowContainer[MAZE_ROW - 1]);
         Destroy(colContainer[0]);
         Destroy(colContainer[MAZE_COLUMN - 1]);
-        DestroyAllGcObjects();
+        DestroyAllObjects(gcTag);
+
+        //create player
+        //ballInstance = (GameObject)Instantiate(ball, 
+        //new Vector3(mazeMatrix[3,0].x, mazeMatrix[3,0].y , mazeMatrix[3,0].z - cellSize)
+        //, Quaternion.identity);
+
+        mazePlayer = (GameObject)Instantiate(playerSoldier, new Vector3(mazeMatrix[3,0].x, mazeMatrix[3,0].y , mazeMatrix[3,0].z - cellSize), Quaternion.identity);
+        mazePlayer.SetActive(false);
     }
 
     void WalkAndKill(int xCell, int yCell)
@@ -838,6 +843,7 @@ public class World : MonoBehaviour
             cube.transform.parent = colContainer[index].transform;
         }
         cube.GetComponent<MeshRenderer>().material.color = Color.red;
+        cube.gameObject.tag = wallTag;
     }
     bool isValidCell(int col, int row)
     {
